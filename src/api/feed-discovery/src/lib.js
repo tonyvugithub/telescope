@@ -39,42 +39,41 @@ function getFeedUrls(document) {
 function checkValidUrl(req, res, next) {
   // If the URL is invalid, return 400 error
   if (!validUrl.isUri(req.body.blogUrl)) {
-    return next(createError(400, 'Invalid Blog URL'));
+    next(createError(400, 'Invalid Blog URL'));
+    return;
   }
   // Else, continue
-  return next();
+  next();
 }
 
 // A middleware to check if the URL is a valid web page, 200 status with text/html type
 async function checkValidBlogPage(req, res, next) {
   try {
-    const { statusCode, headers, body } = await got.get(req.body.blogUrl);
+    const { statusCode, headers, body } = await got(req.body.blogUrl);
     const contentType = headers['content-type'];
     // If status code is not 200 or content-type is not text/html then send 400 error
     if (!(statusCode === 200 && contentType.includes('text/html'))) {
-      return next(createError(400, 'Invalid Blog Page'));
+      next(createError(400, 'Invalid Blog Page'));
+      return;
     }
     res.locals.document = body;
   } catch (err) {
     // if there is err (eg: 404 status), return 400 error
     next(createError(400, 'Failed to Check Blog Page'));
   }
-  return next();
+  next();
 }
 
 // A middleware to discover the feed URL from supplied blog URL
 function discoverFeedUrls(req, res, next) {
-  try {
-    const feedUrls = getFeedUrls(res.locals.document);
-    if (feedUrls.length === 0) {
-      return next(createError(404, 'No Feed Url Discovered'));
-    }
-    // Reference: https://stackoverflow.com/questions/18875292/passing-variables-to-the-next-middleware-using-next-in-express-js
-    res.locals.feedUrls = feedUrls;
-  } catch (err) {
-    next(createError(400, 'Failed to Discover Feed Url'));
+  const feedUrls = getFeedUrls(res.locals.document);
+  if (feedUrls.length === 0) {
+    next(createError(404, 'No Feed Url Discovered'));
+    return;
   }
-  return next();
+  // Reference: https://stackoverflow.com/questions/18875292/passing-variables-to-the-next-middleware-using-next-in-express-js
+  res.locals.feedUrls = feedUrls;
+  next();
 }
 
 exports.checkValidUrl = checkValidUrl;
