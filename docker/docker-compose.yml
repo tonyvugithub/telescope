@@ -108,11 +108,11 @@ services:
     labels:
       # Enable Traefik
       - 'traefik.enable=true'
-      # Traefik routing for the image service at /v1/image
+      # Traefik routing for the feed discovery service at /v1/image
       - 'traefik.http.routers.feed-discovery.rule=Host(`${API_HOST}`) && PathPrefix(`/${API_VERSION}/feed-discovery`)'
-      # Specify the image service port
+      # Specify the feed discovery service port
       - 'traefik.http.services.feed-discovery.loadbalancer.server.port=${FEED_DISCOVERY_PORT}'
-      # Add middleware to this route to strip the /v1/image prefix
+      # Add middleware to this route to strip the /v1/feed-discovery prefix
       - 'traefik.http.middlewares.strip_feed_discovery_prefix.stripprefix.prefixes=/${API_VERSION}/feed-discovery'
       - 'traefik.http.middlewares.strip_feed_discovery_prefix.stripprefix.forceSlash=true'
       - 'traefik.http.routers.feed_discovery.middlewares=strip_feed_discovery_prefix'
