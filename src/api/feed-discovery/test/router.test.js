@@ -2,7 +2,7 @@ const request = require('supertest');
 const nock = require('nock');
 const createError = require('http-errors');
 const { app } = require('../src');
-const { checkValidUrl, checkValidBlogPage, discoverFeedUrls } = require('../src/lib');
+const { checkValidUrl, discoverFeedUrls } = require('../src/lib');
 
 describe('POST /', () => {
   afterAll(() => {
@@ -28,7 +28,7 @@ describe('POST /', () => {
         .post('/')
         .send({ blogUrl: invalidUrl })
         // Expect to receive 400 status and expected response body
-        .expect(400, '<h1>400 Error</h1><p>Invalid Blog URL</p>', done);
+        .expect(400, done);
     });
 
     it('should call next() if the url has valid format', (done) => {
@@ -93,7 +93,7 @@ describe('POST /', () => {
     });
 
     it('should call next() if there is any discovered feed url', (done) => {
-      const validUrl = 'https://LinkWithFeedUrls.com';
+      const validUrl = 'https://LinkWithFeedURLs.com';
       const mockBody = `
       <html>
         <head>
@@ -127,6 +127,11 @@ describe('POST /', () => {
       <html lang="en">
         <head>
           <link rel="alternate" type="application/atom+xml" href="https://test321.blogspot.com/feeds/posts/default/-/open-source"/>
+          <link rel="alternate" type="application/x.atom+xml" href="https://test321.blogspot.com/x.atom/feeds/posts/default/-/open-source"/>
+          <link rel="alternate" type="application/x-atom+xml" href="https://test321.blogspot.com/x-atom/feeds/posts/default/-/open-source"/>
+          <link rel="alternate" type="application/json" href="https://test321.blogspot.com/json"/>
+          <link rel="alternate" type="application/json+oembed" href="https://test321.blogspot.com/oembed/?format=json"/>
+          <link rel="alternate" type="application/xml+oembed" href="https://test321.blogspot.com/oembed/?format=xml"/>
           <link rel="alternate" type="application/rss+xml" href="https://test321.blogspot.com/feeds/posts/default/-/open-source?alt=rss"/>
         </head>
         <body></body>
@@ -136,6 +141,11 @@ describe('POST /', () => {
     const result = {
       feedUrls: [
         'https://test321.blogspot.com/feeds/posts/default/-/open-source',
+        'https://test321.blogspot.com/x.atom/feeds/posts/default/-/open-source',
+        'https://test321.blogspot.com/x-atom/feeds/posts/default/-/open-source',
+        'https://test321.blogspot.com/json',
+        'https://test321.blogspot.com/oembed/?format=json',
+        'https://test321.blogspot.com/oembed/?format=xml',
         'https://test321.blogspot.com/feeds/posts/default/-/open-source?alt=rss',
       ],
     };
